@@ -1,6 +1,6 @@
 <template>
     <h1>{{ msg }}</h1>
-
+    {{ details }}
 </template>
 
 <script>
@@ -10,31 +10,21 @@ import axios from 'axios'
 
 export default {
   name: 'Details',
-  props: {
-    msg: String
-  },
+  props: ['details'],
 
-  created(){
-    this.getAllCarros()
-  },
+  // created(){
+  //   //this.getCarrosById()
+  // },
 
-  data () {
-    return {
-      uriBase : 'http://127.0.0.1:3000/carros',
-      carro
-
-    }
-
-  },
   
-  methods: {
-      getCarroById () {
-          axios.get(this.uriBase)
-            .then(result =>{
-                this.carro = result.data
-          })
-      }
-  }
+  // methods: {
+  //     getCarroById () {
+  //         axios.get(this.uriBase)
+  //           .then(result =>{
+  //               this.carro = result.data
+  //         })
+  //     }
+  // }
   
 }
 </script>
