@@ -3,9 +3,14 @@
         <div class="col-md-12"> 
             <button class="btn btn-primary" @click.prevent="novoForm()">Add Carros</button>
         </div><br>
-
-        
-
+        <div class="col-md-6 offset-3">
+          <p v-if="errors.length">
+            <b>Por favor, corrija o(s) seguinte(s) erro(s):</b>
+            <ul>
+              <li v-for="error in errors" :key="error.id" class="alert alert-warning">{{ error }}</li>
+            </ul>
+          </p>
+        </div>
         <div class="form" v-if="isOpen"><!-- v-if="isOpen" -->
           <div class="col-md-8 offset-2">
               <form action="" >
@@ -67,6 +72,37 @@
   <div class="row container-fluid">
 
     <div class="col-md-12">
+      <div class="row col-md-8 alert alert-default offset-2">
+
+        <div class="col alert alert alert-dark">
+          <div class="input-group rounded">
+            <input type="search" class="form-control rounded" placeholder="Search" aria-label="Search"
+              v-model="search" />
+            <span class="input-group-text border-0" id="search-addon" >
+              <i class="fas fa-search"></i><a href="#" @click="getByModel()">  buscar</a>
+            </span>
+          </div>
+        </div>
+        <div class="col alert alert-dark">
+          
+          <div class="form-group input-group">
+            <div class="row">
+              <div class="col-md-6">
+                <span>Qnt Registro</span>
+              </div>
+              <div class="col-md 4">
+                <select class="form-control form-control-md" v-model="selected" @blur.prevent="getByQty()">
+                  <option>2</option>
+                  <option>5</option>
+                  <option>10</option>
+                  
+                </select>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
 
       <div class="col-md-8 offset-2">       
           <table class="table">
@@ -91,8 +127,8 @@
                 <td>{{carro.dataVenda}}</td>
                 <td>
                   <!-- <a :href="'/datails/'+carro.id">link</a> -->
-                  <a @click="formEditar (carro.id,carro.name, carro.model, carro.anoFabric, carro.anoModel, carro.dataVenda)" class="btn btn-outline-warning"><i class="far fa-edit"></i></a>
-                  <a @click="delete (carro.id)" class="btn btn-outline-danger"><i class="far fa-trash-alt"></i></a>
+                  <a @click.prevent="formEditar (carro.id,carro.name, carro.model, carro.anoFabric, carro.anoModel, carro.dataVenda)" class="btn btn-outline-warning"><i class="far fa-edit"></i></a>
+                  <a @click="deleteRegistro(carro.id)" class="btn btn-outline-danger"><i class="far fa-trash-alt"></i></a>
                 </td>
               </tr>
 
@@ -130,6 +166,7 @@ export default {
       carros: [],
       isOpen: false,
       operacao: '',
+      errors: [],
       carro: {
         id: null,
         name: '',
@@ -144,6 +181,24 @@ export default {
   },
   
   methods: {
+
+      getByModel() {
+        if(this.search === " "){
+          this.getAllCarros ()
+        }
+        axios.get(this.uriBase + "/search?model=" + this.search)
+          .then((result) =>{
+            this.carros = result.data
+        })
+      },
+
+      getByQty() {
+        //alert(this.selected)
+        axios.get(this.uriBase + "qty?qty=" + this.selected)
+          .then((result) =>{
+            this.carros = result.data
+        })
+      },
 
       getAllCarros () {
           axios.get(this.uriBase)
@@ -189,25 +244,34 @@ export default {
         })
       },
 
-      delete(id){
+      deleteRegistro(id){
+
+        if(confirm('Deseja Realmente Excluir esse Veiculo?'))
           axios.delete(this.uriBase+id)
           .then(response=>{
             this.getAllCarros()
+            alert("Carro id: "+ id +" excluido com sucesso")
           })
+          .catch(error => {
+          console.log(error);
+        })
+        
       },
 
       salvar() {
          var criar = "criar"
          var editar = "editar" 
 
-        //alert(this.operacao)
         if(this.operacao === criar){
-          //alert("criando")
+          this.checkValidate()
           this.addCarro()
+          this.isOpen = false
+
         }
         if(this.operacao === editar){
-          //alert("editando")
+          this.checkValidate()
           this.editar()
+          this.isOpen = false
           
         }
 
@@ -233,6 +297,34 @@ export default {
         this.carro.dataVenda = dataVenda;
         this.isOpen = true;
 
+      },
+
+      checkValidate(e){
+        this.errors = [];
+
+            if (!this.carro.name) {
+              this.errors.push('O nome é obrigatório.');
+            }            
+            if (!this.carro.model) {
+              this.errors.push('O modelo é obrigatório.');
+            }
+            if (!this.carro.anoFabric) {
+              this.errors.push('O ano de fabricação é obrigatório.');
+            }
+            if (!this.carro.anoModel) {
+              this.errors.push('O ano do modelo é obrigatório.');
+            }
+            if (!this.carro.dataVenda) {
+              this.errors.push('A data de venda é obrigatório.');
+            }
+
+
+            if (!this.errors.length) {
+              return true;
+            }
+
+            e.preventDefault();
+        
       }
 
   }
